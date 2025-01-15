@@ -21,7 +21,7 @@
         }
 
         body {
-            background: linear-gradient(135deg, var(--secondary-color), #1a1d24);
+            background: linear-gradient(135deg, var(--secondary-color), #5c5c5e);
             min-height: 100vh;
             display: flex;
             flex-direction: column;
@@ -87,6 +87,14 @@
             text-align: center;
         }
 
+        .logo-img {
+            position: absolute;
+            width: 50%;
+            z-index: 30;
+
+
+        }
+
         .auth-container {
             display: flex;
             justify-content: space-around;
@@ -138,7 +146,7 @@
         input:focus {
             border-color: var(--primary-color);
             outline: none;
-            background: rgba(255, 255, 255, 0.1);
+            background: rgb(253, 253, 253);
         }
 
         .btn {
@@ -225,7 +233,7 @@
     </div>
 
     <header>
-        <div class="logo">FitZone</div>
+        <div class="logo"><img src="newlogo.png" alt="">FitZone</div>
     </header>
 
     <div class="container">
