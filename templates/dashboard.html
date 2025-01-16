@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Réservation Musculation</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #ff4757;
+            --secondary-color: #2f3542;
+            --accent-color: #1e90ff;
+            --light-bg: #f1f2f6;
+            --logout-color: #ff4757;
+            --text-color: #ffffff;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Kanit', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, var(--secondary-color), #1a1d24);
+            min-height: 100vh;
+            display: flex;
+            color: var(--text-color);
+        }
+
+        .sidebar {
+            width: 250px;
+            background-color: rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(10px);
+            color: var(--text-color);
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+            position: relative;
+            min-height: 100vh;
+            transition: transform 0.3s ease;
+        }
+
+        .sidebar.collapsed {
+            transform: translateX(-100%);
+        }
+
+        .sidebar h2 {
+            text-align: center;
+            margin-bottom: 20px;
+            font-weight: 700;
+            font-size: 1.5rem;
+        }
+
+        .sidebar ul {
+            list-style: none;
+            flex-grow: 1;
+        }
+
+        .sidebar ul li {
+            margin: 15px 0;
+        }
+
+        .sidebar ul li a {
+            text-decoration: none;
+            color: var(--text-color);
+            padding: 10px;
+            display: block;
+            border-radius: 8px;
+            transition: background-color 0.3s, transform 0.2s;
+        }
+
+        .sidebar ul li a:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+            transform: translateX(5px);
+        }
+
+        .logout {
+            margin-top: auto;
+        }
+
+        .logout a {
+            background-color: var(--logout-color);
+            color: var(--text-color);
+            padding: 12px;
+            display: block;
+            text-align: center;
+            border-radius: 8px;
+            font-weight: 700;
+            font-size: 1rem;
+            transition: background-color 0.3s, transform 0.2s;
+        }
+
+        .logout a:hover {
+            background-color: #ff6b81;
+            transform: translateY(-2px);
+        }
+
+        .toggle-btn {
+            display: inline-block;
+            position: absolute;
+            top: 15px;
+            height: 30x;
+            width: 54px;
+            left: 30px;
+            transform: translateX(-50%) scale(0.7);
+            background-color: var(--primary-color); 
+            color: white;
+            padding: 12px;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.3s ease; 
+            z-index: 100;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+            user-select: none;
+        }
+
+        .bar1, .bar2, .bar3 {
+            width: 30px;
+            height: 5px;
+            background-color: #333;
+            margin: 3px 0;
+            transition: 0.4s;
+        }
+
+        .change .bar1 {
+            transform: translate(1px, 8px) rotate(-45deg);
+        }
+
+        .change .bar2 {
+            opacity: 0;
+        }
+
+        .change .bar3 {
+            transform: translate(1px, -8px) rotate(45deg);
+        }
+
+        .toggle-btn:hover {
+            background-color: #ff6b81;
+        }
+
+
+        .content {
+            flex: 1;
+            padding: 50px;
+            margin: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            margin-left: 20px; /* Ajoute une marge pour prendre en compte la sidebar */
+            border-radius: 15px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            color: var(--text-color);
+            font-weight: 500;
+            position: relative;
+            z-index: 1;
+            transition: margin-left 0.3s ease, width 0.3s ease; /* Transition fluide */
+        }
+
+        .sidebar.collapsed ~ .content {
+            margin-left: -170px; /* Marge réduite quand le menu est replié */
+            width: calc(100% - 60px); /* Le contenu occupe toute la largeur */
+        }
+
+
+        .content h1 {
+            font-size: 2.2rem;
+            margin-bottom: 20px;
+            font-weight: 700;
+        }
+
+        .content p {
+            font-size: 1.2rem;
+        }
+
+        .background-animations {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+            display: flex;
+            justify-content: space-between;
+            opacity: 0.15;
+        }
+
+        .animation-left, .animation-right {
+            position: fixed;
+            top: 50%;
+            transform: translateY(-50%);
+            opacity: 1;
+            z-index: 0;
+        }
+
+        .animation-left {
+            left: 100px;
+        }
+
+        .animation-right {
+            right: 100px;
+        }
+
+        @media (max-width: 768px) {
+            .content {
+                margin: 10px;
+                padding: 20px;
+            }
+
+            .background-animations {
+                opacity: 0.08;
+            }
+
+            .animation-left, .animation-right {
+                transform: scale(0.7) translateY(-50%);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="background-animations">
+        <div class="animation-left">
+            <dotlottie-player 
+                src="https://lottie.host/7e1c2974-9fe8-499e-9369-fd9154ffc156/YcuzylJ43k.lottie" 
+                background="transparent" 
+                speed="1" 
+                style="width: 400px; height: 400px" 
+                loop 
+                autoplay>
+            </dotlottie-player>
+        </div>
+        <div class="animation-right">
+            <dotlottie-player 
+                src="https://lottie.host/b90528ed-59c0-43b2-b808-6f5962fa241c/q4guCPXKee.lottie" 
+                background="transparent" 
+                speed="1" 
+                style="width: 400px; height: 400px" 
+                loop 
+                autoplay>
+            </dotlottie-player>
+        </div>
+    </div>
+
+    <div class="sidebar" id="sidebar">
+        <h2>Dashboard</h2>
+        <ul>
+            <li><a href="#">Accueil</a></li>
+            <li><a href="#">Réserver une salle</a></li>
+            <li><a href="#">Mon profil</a></li>
+            <li><a href="#">Historique</a></li>
+        </ul>
+        <div class="logout">
+            <a href="#">Déconnexion</a>
+        </div>
+    </div>
+
+    <div class="toggle-btn change" id="toggleBtn" onclick="menu(this)">
+        <div class="bar1"></div>
+        <div class="bar2"></div>
+        <div class="bar3"></div>
+    </div>
+
+    <div class="content">
+        <h1>Bienvenue dans le Dashboard</h1>
+        <p>Utilisez le menu pour réserver vos salles de musculation ou accéder à d'autres fonctionnalités.</p>
+    </div>
+
+    <script>
+        const sidebar = document.getElementById('sidebar');
+        const toggleBtn = document.getElementById('toggleBtn');
+
+        toggleBtn.addEventListener('click', function() {
+            sidebar.classList.toggle('collapsed');
+        });
+
+        function menu(x) {
+            x.classList.toggle("change");
+        }
+
+        
+    </script>
+</body>
+</html>
