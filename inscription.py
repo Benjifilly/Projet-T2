@@ -45,11 +45,10 @@ def login():
                     session['user_name'] = user['Prénom']
                     flash('Connexion réussie!')
                     return redirect(url_for('dashboard'))
-
-                flash('Email ou mot de passe incorrect')
+                flash('Email ou mot de passe incorrect', 'error')
                 return redirect(url_for('index'))
         except sqlite3.Error as e:
-            flash('Erreur lors de la connexion à la base de données')
+            flash('Erreur lors de la connexion à la base de données', 'error')
             print(f"Erreur SQLite: {e}")
             return redirect(url_for('index'))
 
@@ -63,7 +62,7 @@ def register():
     confirm_password = request.form['confirm-password']
 
     if password != confirm_password:
-        flash('Les mots de passe ne correspondent pas')
+        flash('Les mots de passe ne correspondent pas', 'error')
         return redirect(url_for('index'))
 
     hashed_password = generate_password_hash(password)
@@ -72,31 +71,30 @@ def register():
         with get_db_connection() as conn:
             cursor = conn.cursor()
 
-            # Vérification de l'unicité des champs
             cursor.execute('SELECT * FROM Utilisateur WHERE "E-mail" = ?', (email,))
             if cursor.fetchone():
-                flash('Cet email est déjà utilisé')
+                flash('Cet email est déjà utilisé', 'error')
                 return redirect(url_for('index'))
 
             cursor.execute('SELECT * FROM Utilisateur WHERE Telephone = ?', (telephone,))
             if cursor.fetchone():
-                flash('Ce numéro de téléphone est déjà utilisé')
+                flash('Ce numéro de téléphone est déjà utilisé', 'error')
                 return redirect(url_for('index'))
 
-            # Insertion de l'utilisateur
             cursor.execute('''
                 INSERT INTO Utilisateur (Nom, Prénom, "E-mail", Telephone, Mot_de_passe)
                 VALUES (?, ?, ?, ?, ?)
             ''', (nom, prenom, email, telephone, hashed_password))
             conn.commit()
 
-            flash('Compte créé avec succès! Vous pouvez maintenant vous connecter')
+            flash('Compte créé avec succès! Vous pouvez maintenant vous connecter', 'success')
             return redirect(url_for('index'))
 
     except sqlite3.Error as e:
-        flash('Une erreur est survenue lors de la création du compte')
+        flash('Une erreur est survenue lors de la création du compte', 'error')
         print(f"Erreur SQLite: {e}")
         return redirect(url_for('index'))
+
 
 @app.route('/logout')
 def logout():
