@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mon Profil - Réservation Musculation</title>
+    <title>Réserver une Salle - Réservation Musculation</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@400;500;700&display=swap" rel="stylesheet">
@@ -78,23 +78,52 @@
             transform: translateX(5px);
         }
 
-        .logout {
-            margin-top: auto;
-        }
-
-        .logout a {
-            background-color: var(--logout-color);
+        .content {
+            flex: 1;
+            padding: 50px;
+            margin: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            margin-left: 20px;
+            border-radius: 15px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
             color: var(--text-color);
-            padding: 12px;
-            display: block;
-            text-align: center;
-            border-radius: 8px;
-            font-weight: 700;
-            font-size: 1rem;
-            transition: background-color 0.3s, transform 0.2s;
+            font-weight: 500;
+            position: relative;
+            z-index: 1;
+            transition: margin-left 0.3s ease, width 0.3s ease;
         }
 
-        .logout a:hover {
+        .sidebar.collapsed ~ .content {
+            margin-left: -170px;
+            width: calc(100% - 60px);
+        }
+
+        .content h1 {
+            font-size: 2.2rem;
+            margin-bottom: 20px;
+            font-weight: 700;
+        }
+
+        .content p {
+            margin-bottom: 20px;
+            font-size: 1.2rem;
+        }
+
+        .content button {
+            padding: 12px 20px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--text-color);
+            background-color: var(--primary-color);
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+            transition: background-color 0.3s ease, transform 0.2s ease;
+        }
+
+        .content button:hover {
             background-color: #ff6b81;
             transform: translateY(-2px);
         }
@@ -103,14 +132,14 @@
             display: inline-block;
             position: absolute;
             top: 15px;
-            left: 39px;
+            left: 30px;
             transform: translateX(-50%) scale(0.7);
-            background-color: var(--primary-color); 
+            background-color: var(--primary-color);
             color: white;
             padding: 12px;
             border-radius: 20px;
             cursor: pointer;
-            transition: background-color 0.3s ease, transform 0.3s ease; 
+            transition: background-color 0.3s ease, transform 0.3s ease;
             z-index: 100;
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
             user-select: none;
@@ -140,80 +169,25 @@
             background-color: #ff6b81;
         }
 
-        .content {
-            flex: 1;
-            padding: 50px;
-            margin: 20px;
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            margin-left: 20px; /* Ajoute une marge pour prendre en compte la sidebar */
-            border-radius: 15px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        .logout {
+            margin-top: auto;
+        }
+
+        .logout a {
+            background-color: var(--logout-color);
             color: var(--text-color);
-            font-weight: 500;
-            position: relative;
-            z-index: 1;
-            transition: margin-left 0.3s ease, width 0.3s ease; /* Transition fluide */
-        }
-
-        .sidebar.collapsed ~ .content {
-            margin-left: -170px; /* Marge réduite quand le menu est replié */
-            width: calc(100% - 60px); /* Le contenu occupe toute la largeur */
-        }
-
-        .content h1 {
-            font-size: 2.2rem;
-            margin-bottom: 20px;
-            font-weight: 700;
-        }
-
-        .content form {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
-            margin-bottom: 20px;
-        }
-
-        .content label {
-            font-size: 1.1rem;
-            font-weight: 500;
-            grid-column: span 2;
-        }
-
-        .content input {
-            padding: 10px;
+            padding: 12px;
+            display: block;
+            text-align: center;
             border-radius: 8px;
-            border: none;
+            font-weight: 700;
             font-size: 1rem;
-            background-color: rgba(255, 255, 255, 0.8);
-            color: var(--secondary-color);
+            transition: background-color 0.3s, transform 0.2s;
         }
 
-        .content button {
-            padding: 10px;
-            border: none;
-            border-radius: 8px;
-            background-color: var(--primary-color);
-            color: var(--text-color);
-            font-size: 1.1rem;
-            font-weight: 700;
-            cursor: pointer;
-            transition: background-color 0.3s;
-        }
-
-        .content button:hover {
+        .logout a:hover {
             background-color: #ff6b81;
-        }
-
-        .content .delete-btn {
-            background-color: #e74c3c;
-            position: absolute;
-            bottom: 20px;
-            right: 20px;
-        }
-
-        .content .delete-btn:hover {
-            background-color: #ff6b81;
+            transform: translateY(-2px);
         }
 
         .modal {
@@ -221,7 +195,8 @@
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            background: rgba(47, 53, 66); 
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
             padding: 30px;
             border-radius: 15px;
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
@@ -236,33 +211,49 @@
         }
 
         .modal button {
-            padding: 10px;
+            padding: 12px 20px;
             margin: 10px;
-            border: none;
-            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            border-radius: 10px;
             background-color: var(--primary-color);
             color: var(--text-color);
-            font-size: 1rem;
-            font-weight: 700;
+            border: none;
             cursor: pointer;
-            transition: background-color 0.3s;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+            transition: background-color 0.3s, transform 0.2s;
         }
 
         .modal button:hover {
             background-color: #ff6b81;
+            transform: translateY(-2px);
         }
 
-        .content a {
-            color: var(--accent-color);
-            text-decoration: none;
+        .modal label {
+            display: block;
+            margin-bottom: 10px;
+            font-size: 1.2rem;
             font-weight: 500;
         }
 
-        .content a:hover {
-            text-decoration: underline;
+        .modal input, .modal select {
+            width: 100%;
+            padding: 10px;
+            font-size: 1rem;
+            margin-bottom: 20px;
+            border: none;
+            border-radius: 8px;
+            background-color: rgba(255, 255, 255, 0.8);
+            color: var(--secondary-color);
+        }
+
+        .modal input:focus, .modal select:focus {
+            outline: none;
+            border: 2px solid var(--accent-color);
         }
 
         .flash-message {
+            margin-top: 20px;
             margin-bottom: 20px;
             padding: 10px;
             border-radius: 8px;
@@ -283,7 +274,7 @@
 </head>
 <body>
     <div class="sidebar" id="sidebar">
-        <h2>Mon Profil</h2>
+        <h2>Réserver</h2>
         <ul>
             <li><a href="{{ url_for('dashboard') }}">Accueil</a></li>
             <li><a href="{{ url_for('reservation') }}">Réserver</a></li>
@@ -302,37 +293,43 @@
     </div>
 
     <div class="content">
-        <h1>Mon Profil</h1>
-        <form method="POST" action="{{ url_for('profile') }}">
-            <label for="nom">Nom :</label>
-            <input type="text" id="nom" name="nom" value="{{ user['Nom'] }}" required>
-
-            <label for="prenom">Prénom :</label>
-            <input type="text" id="prenom" name="prenom" value="{{ user['Prénom'] }}" required>
-
-            <label for="email">Email :</label>
-            <input type="email" id="email" name="email" value="{{ user['E-mail'] }}" required>
-
-            <label for="telephone">Téléphone :</label>
-            <input type="text" id="telephone" name="telephone" value="{{ user['Telephone'] }}" required> <br> 
-
-            <button type="submit">Mettre à jour</button>
-        </form>
-
-        <button class="delete-btn" id="deleteAccount">Supprimer mon compte</button>
+        <h1>Réserver une Salle</h1>
+        <p>Sélectionnez une salle et un créneau horaire pour effectuer votre réservation.</p>
+        <button id="reserveBtn" class="reserve-btn">Réserver un créneau</button>
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="flash-message flash-{{ category }}">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+        {% endwith %}
     </div>
 
-    <div class="modal" id="confirmationModal">
-        <h2>Êtes-vous sûr de vouloir supprimer votre compte ?</h2>
-        <button onclick="confirmDeletion()">Oui</button>
-        <button onclick="closeModal()">Non</button>
+    <div class="modal" id="reserveModal">
+        <h2>Réserver un créneau</h2>
+        <form method="POST" action="{{ url_for('reserve_slot') }}">
+            <label for="room">Salle :</label>
+            <select id="room" name="room">
+                <option value="salle1">Salle 1</option>
+                <option value="salle2">Salle 2</option>
+            </select>
+
+            <label for="time">Début :</label>
+            <input type="datetime-local" id="time" name="time" required>
+
+            <label for="duration">Durée (en minutes) :</label>
+            <input type="number" id="duration" name="duration" min="30" step="15" value="60" required>
+
+            <button type="submit">Confirmer</button>
+            <button type="button" onclick="closeReserveModal()">Annuler</button>
+        </form>
     </div>
 
     <script>
         const sidebar = document.getElementById('sidebar');
         const toggleBtn = document.getElementById('toggleBtn');
-        const deleteBtn = document.getElementById('deleteAccount');
-        const modal = document.getElementById('confirmationModal');
+        const reserveBtn = document.getElementById('reserveBtn');
+        const reserveModal = document.getElementById('reserveModal');
 
         toggleBtn.addEventListener('click', function() {
             sidebar.classList.toggle('collapsed');
@@ -342,22 +339,13 @@
             x.classList.toggle("change");
         }
 
-        deleteBtn.addEventListener('click', function() {
-            modal.classList.add('active');
+        reserveBtn.addEventListener('click', function() {
+            reserveModal.classList.add('active');
         });
 
-        function closeModal() {
-            modal.classList.remove('active');
+        function closeReserveModal() {
+            reserveModal.classList.remove('active');
         }
-
-        function confirmDeletion() {
-            const form = document.createElement('form');
-            form.method = 'POST';
-            form.action = "{{ url_for('delete_account') }}";
-            document.body.appendChild(form);
-            form.submit();
-        }
-
     </script>
 </body>
 </html>

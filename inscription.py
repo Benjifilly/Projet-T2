@@ -149,6 +149,45 @@ def profile():
         flash('Erreur lors de la mise à jour du profil', 'error')
         print(f"Erreur SQLite: {e}")
         return redirect(url_for('dashboard'))
+    
+@app.route('/reserve_slot', methods=['POST'])
+@login_required
+def reserve_slot():
+    room = request.form.get('room')
+    time = request.form.get('time')
+    user_id = session['user_id'] 
+
+    if not room or not time:
+        flash('Tous les champs sont requis.', 'error')
+        return redirect(url_for('reservation'))
+
+    try:
+        with get_db_connection() as conn:
+            cursor = conn.cursor()
+
+            # Vérifiez si le créneau est déjà réservé
+            cursor.execute('''
+                SELECT * FROM Creneau WHERE Heure_debut = ? AND ID_salle = ?
+            ''', (time, room))
+            if cursor.fetchone():
+                flash('Ce créneau est déjà réservé.', 'error')
+                return redirect(url_for('reservation'))
+
+            # Insérez le créneau réservé
+            cursor.execute('''
+                INSERT INTO Creneau (ID_utilisateur, Heure_debut, ID_salle)
+                VALUES (?, ?, ?)
+            ''', (user_id, time, room))
+            conn.commit()
+
+            flash('Réservation effectuée avec succès !', 'success')
+            return redirect(url_for('reservation'))
+
+    except sqlite3.Error as e:
+        flash('Une erreur est survenue lors de la réservation.', 'error')
+        print(f"Erreur SQLite: {e}")
+        return redirect(url_for('reservation'))
+
 
 
 
@@ -180,6 +219,12 @@ def delete_account():
 @login_required
 def dashboard():
     return render_template('dashboard.html', user_name=session.get('user_name'))
+
+@app.route('/reservation')
+@login_required
+def reservation():
+    return render_template('reservation.html')
+
 
 if __name__ == '__main__':
     app.run(debug=True)
