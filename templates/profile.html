@@ -103,14 +103,14 @@
             display: inline-block;
             position: absolute;
             top: 15px;
-            left: 39px;
+            left: 30px;
             transform: translateX(-50%) scale(0.7);
-            background-color: var(--primary-color); 
+            background-color: var(--primary-color);
             color: white;
             padding: 12px;
             border-radius: 20px;
             cursor: pointer;
-            transition: background-color 0.3s ease, transform 0.3s ease; 
+            transition: background-color 0.3s ease, transform 0.3s ease;
             z-index: 100;
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
             user-select: none;
@@ -279,6 +279,19 @@
             background-color: #e74c3c;
             color: #ffffff;
         }
+
+        .info {
+            margin-bottom: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 20px;
+            border-radius: 15px;
+            max-width: 450px;
+            
+        }
+
+        .info input {
+            min-width: 400px
+        }
     </style>
 </head>
 <body>
@@ -288,7 +301,7 @@
             <li><a href="{{ url_for('dashboard') }}">Accueil</a></li>
             <li><a href="{{ url_for('reservation') }}">Réserver</a></li>
             <li><a href="{{ url_for('profile') }}">Mon profil</a></li>
-            <li><a href="#">Historique</a></li>
+            <li><a href="{{ url_for('my_reservations') }}">Mes Réservations</a></li>
         </ul>
         <div class="logout">
             <a href="{{ url_for('logout') }}">Déconnexion</a>
@@ -303,22 +316,23 @@
 
     <div class="content">
         <h1>Mon Profil</h1>
-        <form method="POST" action="{{ url_for('profile') }}">
-            <label for="nom">Nom :</label>
-            <input type="text" id="nom" name="nom" value="{{ user['Nom'] }}" required>
+        <div class="info">
+            <form method="POST" action="{{ url_for('profile') }}">
+                <label for="nom">Nom :</label>
+                <input type="text" id="nom" name="nom" value="{{ user['Nom'] }}" required>
 
-            <label for="prenom">Prénom :</label>
-            <input type="text" id="prenom" name="prenom" value="{{ user['Prénom'] }}" required>
+                <label for="prenom">Prénom :</label>
+                <input type="text" id="prenom" name="prenom" value="{{ user['Prénom'] }}" required>
 
-            <label for="email">Email :</label>
-            <input type="email" id="email" name="email" value="{{ user['E-mail'] }}" required>
+                <label for="email">Email :</label>
+                <input type="email" id="email" name="email" value="{{ user['E-mail'] }}" required>
 
-            <label for="telephone">Téléphone :</label>
-            <input type="text" id="telephone" name="telephone" value="{{ user['Telephone'] }}" required> <br> 
+                <label for="telephone">Téléphone :</label>
+                <input type="text" id="telephone" name="telephone" value="{{ user['Telephone'] }}" required> <br>
 
-            <button type="submit">Mettre à jour</button>
-        </form>
-
+                <button type="submit">Mettre à jour</button>
+            </form>
+        </div>
         <button class="delete-btn" id="deleteAccount">Supprimer mon compte</button>
     </div>
 

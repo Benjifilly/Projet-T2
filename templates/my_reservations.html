@@ -3,12 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Réserver une Salle - Réservation Musculation</title>
+    <title>Mes Réservations - Réservation Musculation</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@400;500;700&display=swap" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
     <style>
         :root {
             --primary-color: #ff4757;
@@ -192,109 +190,77 @@
             transform: translateY(-2px);
         }
 
-        .modal {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, 100%);
-            opacity: 0;
+        .card-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .card {
             background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            padding: 30px;
-            border-radius: 15px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-            text-align: center;
-            color: var(--text-color);
-            transition: transform 0.3s ease, opacity 0.3s ease;
-            z-index: 1000;
-        }
-
-        .modal.active {
-            transform: translate(-50%, -50%);
-            opacity: 1;
-        }
-
-        .modal.fade-out {
-            transform: translate(-50%, 100%);
-            opacity: 0;
-        }
-
-
-        .modal button {
-            padding: 12px 20px;
-            margin: 10px;
-            font-size: 1.1rem;
-            font-weight: 700;
             border-radius: 10px;
-            background-color: var(--primary-color);
-            color: var(--text-color);
-            border: none;
-            cursor: pointer;
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-            transition: background-color 0.3s, transform 0.2s;
+            padding: 20px;
+            width: calc(33.33% - 20px);
+            position: relative;
+            color: var(--text-color);
+            transition: transform 0.2s ease;
         }
 
-        .modal button:hover {
-            background-color: #ff6b81;
-            transform: translateY(-2px);
+        .card:hover {
+            transform: translateY(-5px);
         }
 
-        .modal label {
-            display: block;
+        .card h3 {
+            font-size: 1.5rem;
             margin-bottom: 10px;
-            font-size: 1.2rem;
-            font-weight: 500;
         }
 
-        .modal input, .modal select {
-            width: 100%;
-            padding: 10px;
+        .card p {
             font-size: 1rem;
-            margin-bottom: 20px;
-            border: none;
-            border-radius: 8px;
-            background-color: rgba(255, 255, 255, 0.8);
-            color: var(--secondary-color);
+            margin-bottom: 10px;
         }
 
-        .modal input:focus, .modal select:focus {
-            outline: none;
-            border: 2px solid var(--accent-color);
+        .card .menu {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 5px;
+            padding: 5px;
+            cursor: pointer;
         }
 
-        .flash-message {
-            margin-top: 20px;
-            margin-bottom: 20px;
+        .card .menu-options {
+            display: none;
+            position: absolute;
+            top: 30px;
+            right: 0;
+            background: rgba(0, 0, 0, 0.8);
+            border-radius: 5px;
             padding: 10px;
-            border-radius: 8px;
-            text-align: center;
-            font-weight: 700;
-        }
-
-        .flash-success {
-            background-color: #2ecc71;
-            color: #ffffff;
-        }
-
-        .flash-error {
-            background-color: #e74c3c;
-            color: #ffffff;
-        }
-
-        #calendar {
-            max-width: 1000px;
-            max-height: 600px;
-            margin: 0 auto;
-            padding: 10px;
-            background-color: rgba(255, 255, 255, 0.1);
-            border-radius: 10px;
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        .card .menu-options button {
+            background: none;
+            border: none;
+            color: var(--text-color);
+            font-size: 1rem;
+            padding: 5px;
+            text-align: left;
+            width: 100%;
+            cursor: pointer;
+        }
+
+        .card .menu-options button:hover {
+            background: rgba(255, 255, 255, 0.1);
         }
     </style>
 </head>
 <body>
     <div class="sidebar" id="sidebar">
-        <h2>Réserver</h2>
+        <h2>Mes<br> Réservations</h2>
         <ul>
             <li><a href="{{ url_for('dashboard') }}">Accueil</a></li>
             <li><a href="{{ url_for('reservation_page') }}">Réserver</a></li>
@@ -313,46 +279,28 @@
     </div>
 
     <div class="content">
-        <h1>Réserver une Salle</h1>
-        <p>Sélectionnez une salle et un créneau horaire pour effectuer votre réservation.</p>
-        <button id="reserveBtn" class="reserve-btn">Réserver un créneau</button>
-        {% with messages = get_flashed_messages(with_categories=true) %}
-        {% if messages %}
-            {% for category, message in messages %}
-                <div class="flash-message flash-{{ category }}">{{ message }}</div>
+        <h1>Mes Réservations</h1>
+        <div class="card-container">
+            {% for reservation in reservations %}
+            <div class="card">
+                <div class="menu" onclick="toggleMenu(this)">⋮
+                    <div class="menu-options">
+                        <button onclick="cancelReservation('{{ reservation.id }}')">Annuler</button>
+                        <button onclick="modifyReservation('{{ reservation.id }}')">Déplacer</button>
+                    </div>
+                </div>
+                <h3>Salle {{ reservation.room }}</h3>
+                <p><strong>Début :</strong> {{ reservation.start_time }}</p>
+                <p><strong>Fin :</strong> {{ reservation.end_time }}</p>
+                <p><strong>Statut :</strong> {{ reservation.status }}</p>
+            </div>
             {% endfor %}
-        {% endif %}
-        {% endwith %}
-        <div class="trait" style="border: 1px solid var(--primary-color); margin-top: 20px; margin-bottom: 20px;"></div>
-        <h2>Calendrier des réservations</h2>
-        <div id="calendar" style="margin-top: 20px;"></div>
-    </div>
-
-    <div class="modal" id="reserveModal">
-        <h2>Réserver un créneau</h2>
-        <form method="POST" action="{{ url_for('reserve_slot') }}">
-            <label for="room">Salle :</label>
-            <select id="room" name="room">
-                <option value="salle1">Salle 1</option>
-                <option value="salle2">Salle 2</option>
-            </select>
-
-            <label for="time">Début :</label>
-            <input type="datetime-local" id="time" name="time" required>
-
-            <label for="duration">Durée (en minutes) :</label>
-            <input type="number" id="duration" name="duration" min="30" step="15" value="60" required>
-
-            <button type="submit">Confirmer</button>
-            <button type="button" onclick="closeReserveModal()">Annuler</button>
-        </form>
+        </div>
     </div>
 
     <script>
         const sidebar = document.getElementById('sidebar');
         const toggleBtn = document.getElementById('toggleBtn');
-        const reserveBtn = document.getElementById('reserveBtn');
-        const reserveModal = document.getElementById('reserveModal');
 
         toggleBtn.addEventListener('click', function() {
             sidebar.classList.toggle('collapsed');
@@ -362,37 +310,22 @@
             x.classList.toggle("change");
         }
 
-    
-        document.addEventListener('DOMContentLoaded', function () {
-        const calendarEl = document.getElementById('calendar');
+        function toggleMenu(menu) {
+            const options = menu.querySelector('.menu-options');
+            options.style.display = options.style.display === 'block' ? 'none' : 'block';
+        }
 
-        const calendar = new FullCalendar.Calendar(calendarEl, {
-            initialView: 'timeGridWeek',
-            locale: 'fr',
-            headerToolbar: {
-                start: 'prev,next today',
-                center: 'title',
-                end: 'timeGridWeek,timeGridDay'
-            },
-            events: '/api/reservations' // URL de l'API pour récupérer les réservations
-        });
+        function cancelReservation(id) {
+            if (confirm('Voulez-vous vraiment annuler cette réservation ?')) {
+                // Logique pour annuler la réservation
+                console.log(`Annulation de la réservation ${id}`);
+            }
+        }
 
-        calendar.render();
-    });
-
-    reserveBtn.addEventListener('click', function() {
-        reserveModal.classList.add('active');
-        reserveModal.classList.remove('fade-out');
-    });
-
-    function closeReserveModal() {
-        reserveModal.classList.add('fade-out');
-        reserveModal.classList.remove('active');
-        
-        setTimeout(() => {
-            reserveModal.classList.remove('fade-out');
-        }, 300); 
-    }
+        function modifyReservation(id) {
+            // Logique pour déplacer une réservation
+            console.log(`Modification de la réservation ${id}`);
+        }
     </script>
 </body>
 </html>

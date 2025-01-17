@@ -1,7 +1,9 @@
-from flask import Flask, request, render_template, redirect, url_for, flash, session
+from flask import Flask, request, render_template, redirect, url_for, flash, session, jsonify   
 import sqlite3
 from werkzeug.security import generate_password_hash, check_password_hash
 from functools import wraps
+from datetime import datetime, timedelta
+
 
 app = Flask(__name__)
 app.secret_key = 'votre_clé_secrète_ici'
@@ -154,30 +156,51 @@ def profile():
 @login_required
 def reserve_slot():
     room = request.form.get('room')
-    time = request.form.get('time')
-    user_id = session['user_id'] 
+    start_time = request.form.get('time')
+    duration = int(request.form.get('duration'))
+    user_id = session['user_id']  # Identifiant de l'utilisateur connecté
 
-    if not room or not time:
+    if not room or not start_time or not duration:
         flash('Tous les champs sont requis.', 'error')
         return redirect(url_for('reservation'))
+
+    # Calcul de l'heure de fin
+    start_time_dt = datetime.strptime(start_time, "%Y-%m-%dT%H:%M")
+    end_time_dt = start_time_dt + timedelta(minutes=duration)
+    end_time = end_time_dt.strftime("%Y-%m-%d %H:%M:%S")
 
     try:
         with get_db_connection() as conn:
             cursor = conn.cursor()
 
-            # Vérifiez si le créneau est déjà réservé
+            # Vérifiez si le créneau est disponible
             cursor.execute('''
-                SELECT * FROM Creneau WHERE Heure_debut = ? AND ID_salle = ?
-            ''', (time, room))
-            if cursor.fetchone():
-                flash('Ce créneau est déjà réservé.', 'error')
+                SELECT * FROM Creneau
+                WHERE (Heure_debut < ? AND Heure_fin > ?) AND ID_salle = ?
+            ''', (end_time, start_time, room))
+            existing_creneau = cursor.fetchone()
+
+            if existing_creneau:
+                # Ajouter en liste d'attente si le créneau est déjà pris
+                cursor.execute('''
+                    INSERT INTO Liste_attente (Date_demande, Position)
+                    VALUES (?, (SELECT COALESCE(MAX(Position), 0) + 1 FROM Liste_attente))
+                ''', (datetime.now().strftime("%Y-%m-%d %H:%M:%S"),))
+                conn.commit()
+                flash('Le créneau est déjà réservé. Vous avez été ajouté à la liste d’attente.', 'error')
                 return redirect(url_for('reservation'))
 
-            # Insérez le créneau réservé
+            # Sinon, ajouter une réservation
             cursor.execute('''
-                INSERT INTO Creneau (ID_utilisateur, Heure_debut, ID_salle)
+                INSERT INTO Creneau (Heure_debut, Heure_fin, ID_salle)
                 VALUES (?, ?, ?)
-            ''', (user_id, time, room))
+            ''', (start_time, end_time, room))
+            creneau_id = cursor.lastrowid
+
+            cursor.execute('''
+                INSERT INTO Reservation (ID_creneau, Date_reservation, Statut, ID_utilisateur)
+                VALUES (?, ?, ?, ?)
+            ''', (creneau_id, datetime.now().strftime("%Y-%m-%d %H:%M:%S"), "Confirmée", user_id))
             conn.commit()
 
             flash('Réservation effectuée avec succès !', 'success')
@@ -187,7 +210,99 @@ def reserve_slot():
         flash('Une erreur est survenue lors de la réservation.', 'error')
         print(f"Erreur SQLite: {e}")
         return redirect(url_for('reservation'))
+    
+@app.route('/reservation')
+@login_required
+def reservation():
+    if request.args.get('format') == 'json':
+        # Retourne les données des réservations
+        user_id = session['user_id']
+        try:
+            with get_db_connection() as conn:
+                cursor = conn.cursor()
+                cursor.execute('''
+                    SELECT Creneau.Heure_debut, Creneau.Heure_fin, Reservation.Statut, Reservation.ID_creneau,
+                           CASE WHEN Reservation.ID_utilisateur = ? THEN 1 ELSE 0 END AS is_user
+                    FROM Creneau
+                    JOIN Reservation ON Creneau.ID_creneau = Reservation.ID_creneau
+                ''', (user_id,))
+                reservations = cursor.fetchall()
 
+                events = [
+                    {
+                        'title': "Ma réservation" if r['is_user'] else "Réservé",
+                        'start': r['Heure_debut'],
+                        'end': r['Heure_fin'],
+                        'backgroundColor': '#28a745' if r['is_user'] else '#dc3545',
+                        'borderColor': '#28a745' if r['is_user'] else '#dc3545',
+                        'textColor': '#fff'
+                    } for r in reservations
+                ]
+                return jsonify(events)
+
+        except sqlite3.Error as e:
+            print(f"Erreur SQLite: {e}")
+            return jsonify([]), 500
+    else:
+        return render_template('reservation.html')
+
+
+@app.route('/api/reservations')
+@login_required
+def api_reservations():
+    user_id = session['user_id']
+    try:
+        with get_db_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute('''
+                SELECT Creneau.Heure_debut, Creneau.Heure_fin, Reservation.Statut, Reservation.ID_creneau,
+                       CASE WHEN Reservation.ID_utilisateur = ? THEN 1 ELSE 0 END AS is_user
+                FROM Creneau
+                JOIN Reservation ON Creneau.ID_creneau = Reservation.ID_creneau
+            ''', (user_id,))
+            reservations = cursor.fetchall()
+
+            events = [
+                {
+                    'title': "Ma réservation" if r['is_user'] else "Réservé",
+                    'start': r['Heure_debut'],
+                    'end': r['Heure_fin'],
+                    'backgroundColor': '#28a745' if r['is_user'] else '#dc3545',
+                    'borderColor': '#28a745' if r['is_user'] else '#dc3545',
+                    'textColor': '#fff'
+                } for r in reservations
+            ]
+            return jsonify(events)
+
+    except sqlite3.Error as e:
+        print(f"Erreur SQLite: {e}")
+        return jsonify([]), 500
+    
+@app.route('/my_reservations')
+@login_required
+def my_reservations():
+    user_id = session['user_id']
+    try:
+        with get_db_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute('''
+                SELECT Reservation.ID_reservation AS id, 
+                       Creneau.ID_creneau AS room, 
+                       Creneau.Heure_debut AS start_time, 
+                       Creneau.Heure_fin AS end_time, 
+                       Reservation.Statut AS status
+                FROM Reservation
+                JOIN Creneau ON Reservation.ID_creneau = Creneau.ID_creneau
+                WHERE Reservation.ID_utilisateur = ?
+            ''', (user_id,))
+            reservations = cursor.fetchall()
+
+        return render_template('my_reservations.html', reservations=reservations)
+
+    except sqlite3.Error as e:
+        flash('Erreur lors du chargement des réservations.', 'error')
+        print(f"Erreur SQLite: {e}")
+        return render_template('my_reservations.html', reservations=[])
 
 
 
@@ -222,7 +337,7 @@ def dashboard():
 
 @app.route('/reservation')
 @login_required
-def reservation():
+def reservation_page():
     return render_template('reservation.html')
 
 
