@@ -256,6 +256,63 @@
         .card .menu-options button:hover {
             background: rgba(255, 255, 255, 0.1);
         }
+
+        .no-reservations {
+            text-align: center;
+            margin-top: 50px;
+            color: var(--text-color);
+        }
+
+        .modal {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.8);
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+            z-index: 2000;
+            display: none;
+            color: var(--text-color);
+        }
+
+        .modal.active {
+            display: block;
+        }
+
+        .modal button {
+            margin-top: 10px;
+            padding: 10px 20px;
+            background-color: var(--primary-color);
+            color: var(--text-color);
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .modal button:hover {
+            background-color: #ff6b81;
+        }
+
+        .alert {
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 5px;
+            font-size: 1rem;
+            text-align: center;
+            transition: opacity 0.3s ease;
+        }
+
+        .alert-success {
+            background-color: #28a745;
+            color: #ffffff;
+        }
+
+        .alert-error {
+            background-color: #dc3545;
+            color: #ffffff;
+        }
     </style>
 </head>
 <body>
@@ -264,8 +321,8 @@
         <ul>
             <li><a href="{{ url_for('dashboard') }}">Accueil</a></li>
             <li><a href="{{ url_for('reservation_page') }}">Réserver</a></li>
-            <li><a href="{{ url_for('profile') }}">Mon profil</a></li>
             <li><a href="{{ url_for('my_reservations') }}">Mes Réservations</a></li>
+            <li><a href="{{ url_for('profile') }}">Mon profil</a></li>
         </ul>
         <div class="logout">
             <a href="{{ url_for('logout') }}">Déconnexion</a>
@@ -280,13 +337,38 @@
 
     <div class="content">
         <h1>Mes Réservations</h1>
+        <div id="messages">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                    <div class="alert alert-{{ category }}">
+                        {{ message }}
+                    </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+        </div>        
+        {% if not reservations %}
+        <div class="no-reservations">
+            <p>Vous n'avez aucune réservation.</p>
+            <a href="{{ url_for('reservation_page') }}">
+                <button>Réserver maintenant</button>
+            </a>
+        </div>
+        {% else %}
         <div class="card-container">
             {% for reservation in reservations %}
             <div class="card">
                 <div class="menu" onclick="toggleMenu(this)">⋮
                     <div class="menu-options">
-                        <button onclick="cancelReservation('{{ reservation.id }}')">Annuler</button>
-                        <button onclick="modifyReservation('{{ reservation.id }}')">Déplacer</button>
+                        <form method="POST" action="{{ url_for('cancel_reservation', reservation_id=reservation.id) }}">
+                            <button type="submit">Annuler</button>
+                        </form>
+                        <form method="POST" action="{{ url_for('modify_reservation', reservation_id=reservation.id) }}">
+                            <label for="newDate">Nouvelle date :</label>
+                            <input type="datetime-local" id="newDate" name="new_date" required>
+                            <button type="submit">Déplacer</button>
+                        </form>
                     </div>
                 </div>
                 <h3>Salle {{ reservation.room }}</h3>
@@ -296,6 +378,24 @@
             </div>
             {% endfor %}
         </div>
+        {% endif %}
+    </div>
+
+    <div class="modal" id="cancelModal">
+        <p>Voulez-vous vraiment annuler cette réservation ?</p>
+        <button onclick="confirmCancel()">Confirmer</button>
+        <button onclick="closeModal('cancelModal')">Annuler</button>
+    </div>
+
+    <div class="modal" id="modifyModal">
+        <form method="POST">
+            <p>Modifiez la réservation :</p>
+            <label for="newDate">Nouvelle date :</label>
+            <input type="datetime-local" id="newDate" name="new_date" required>
+            <input type="hidden" id="reservationId" name="reservation_id">
+            <button type="submit">Confirmer</button>
+            <button type="button" onclick="closeModal('modifyModal')">Annuler</button>
+        </form>
     </div>
 
     <script>
@@ -315,17 +415,53 @@
             options.style.display = options.style.display === 'block' ? 'none' : 'block';
         }
 
-        function cancelReservation(id) {
-            if (confirm('Voulez-vous vraiment annuler cette réservation ?')) {
-                // Logique pour annuler la réservation
-                console.log(`Annulation de la réservation ${id}`);
-            }
+        function openCancelModal(id) {
+            const cancelModal = document.getElementById('cancelModal');
+            cancelModal.dataset.id = id;
+            cancelModal.classList.add('active');
         }
 
-        function modifyReservation(id) {
-            // Logique pour déplacer une réservation
-            console.log(`Modification de la réservation ${id}`);
+        function openModifyModal(id) {
+            const modifyModal = document.getElementById('modifyModal');
+            const reservationIdField = document.getElementById('reservationId');
+            reservationIdField.value = id; 
+            modifyModal.classList.add('active');
         }
+
+
+        function closeModal(modalId) {
+            const modal = document.getElementById(modalId);
+            modal.classList.remove('active');
+        }
+
+        function confirmCancel() {
+            const id = document.getElementById('cancelModal').dataset.id;
+            console.log(`Annulation de la réservation ${id}`);
+            closeModal('cancelModal');
+        }
+
+        function confirmModify() {
+            const id = document.getElementById('modifyModal').dataset.id;
+            const newDate = document.getElementById('newDate').value;
+            console.log(`Modification de la réservation ${id} à la nouvelle date : ${newDate}`);
+            closeModal('modifyModal');
+        }
+
+        function submitCancel(reservationId) {
+            fetch(`/cancel_reservation/${reservationId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            }).then(response => {
+                if (response.ok) {
+                    location.reload();
+                } else {
+                    alert('Erreur lors de l\'annulation.');
+                }
+            });
+        }
+
     </script>
 </body>
 </html>

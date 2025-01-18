@@ -303,8 +303,79 @@ def my_reservations():
         flash('Erreur lors du chargement des réservations.', 'error')
         print(f"Erreur SQLite: {e}")
         return render_template('my_reservations.html', reservations=[])
+    
+@app.route('/cancel_reservation/<int:reservation_id>', methods=['POST'])
+@login_required
+def cancel_reservation(reservation_id):
+    try:
+        with get_db_connection() as conn:
+            cursor = conn.cursor()
 
+            # Vérifiez que la réservation appartient à l'utilisateur connecté
+            cursor.execute('''
+                SELECT * FROM Reservation WHERE ID_reservation = ? AND ID_utilisateur = ?
+            ''', (reservation_id, session['user_id']))
+            reservation = cursor.fetchone()
 
+            if not reservation:
+                flash('Réservation introuvable ou vous n\'êtes pas autorisé à l\'annuler.', 'error')
+                return redirect(url_for('my_reservations'))
+
+            # Supprimez la réservation
+            cursor.execute('DELETE FROM Reservation WHERE ID_reservation = ?', (reservation_id,))
+            conn.commit()
+            flash('Réservation annulée avec succès.', 'success')
+            return redirect(url_for('my_reservations'))
+    except sqlite3.Error as e:
+        flash('Erreur lors de l\'annulation de la réservation.', 'error')
+        print(f"Erreur SQLite: {e}")
+        return redirect(url_for('my_reservations'))
+
+    
+def calculate_end_time(start_time):
+    start_dt = datetime.strptime(start_time, "%Y-%m-%dT%H:%M")
+    end_dt = start_dt + timedelta(hours=1) 
+    return end_dt.strftime("%Y-%m-%d %H:%M:%S")
+
+    
+@app.route('/modify_reservation/<int:reservation_id>', methods=['POST'])
+@login_required
+def modify_reservation(reservation_id):
+    new_date = request.form.get('new_date')
+
+    if not new_date:
+        flash('Une nouvelle date est requise.', 'error')
+        return redirect(url_for('my_reservations'))
+
+    try:
+        with get_db_connection() as conn:
+            cursor = conn.cursor()
+
+            # Vérifiez que la réservation appartient à l'utilisateur connecté
+            cursor.execute('''
+                SELECT * FROM Reservation WHERE ID_reservation = ? AND ID_utilisateur = ?
+            ''', (reservation_id, session['user_id']))
+            reservation = cursor.fetchone()
+
+            if not reservation:
+                flash('Réservation introuvable ou vous n\'êtes pas autorisé à la modifier.', 'error')
+                return redirect(url_for('my_reservations'))
+
+            # Mettez à jour la réservation avec la nouvelle date
+            cursor.execute('''
+                UPDATE Creneau
+                SET Heure_debut = ?, Heure_fin = ?
+                WHERE ID_creneau = (
+                    SELECT ID_creneau FROM Reservation WHERE ID_reservation = ?
+                )
+            ''', (new_date, calculate_end_time(new_date), reservation_id))
+            conn.commit()
+            flash('Réservation modifiée avec succès.', 'success')
+            return redirect(url_for('my_reservations'))
+    except sqlite3.Error as e:
+        flash('Erreur lors de la modification de la réservation.', 'error')
+        print(f"Erreur SQLite: {e}")
+        return redirect(url_for('my_reservations'))
 
 @app.route('/logout')
 def logout():
