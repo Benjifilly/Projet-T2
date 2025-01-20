@@ -1,7 +1,7 @@
 name: Build and deploy Python app to Azure Web App
 
 env:
-  AZURE_WEBAPP_NAME: my-flask-app  # Remplacez par le nom de votre Azure Web App
+  AZURE_WEBAPP_NAME: inscription.py  # Remplacez par le nom de votre Azure Web App
   PYTHON_VERSION: '3.8'            # Remplacez par la version de Python utilisée dans votre projet
 
 on:
