@@ -1,7 +1,5 @@
 # 🏋️‍♂️ Projet de Terminale Générale - BDD Réservation de Salles de Musculation
 
-[Site web](https://projet-t2.onrender.com)
-
 ## 📖 Description
 Ce projet est réalisé dans le cadre de la terminale générale. Il s'agit d'une application web permettant de gérer la réservation de salles de musculation. Elle inclut des fonctionnalités comme l'inscription, la connexion, et la gestion des réservations.
 
