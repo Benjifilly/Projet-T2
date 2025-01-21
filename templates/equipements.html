@@ -1,10 +1,9 @@
-
 <!DOCTYPE html>
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard - Réservation Musculation</title>
+    <title>Équipements - Réservation Musculation</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@400;500;700&display=swap" rel="stylesheet">
@@ -141,110 +140,90 @@
             background-color: #ff6b81;
         }
 
-
         .content {
             flex: 1;
             padding: 50px;
             margin: 20px;
             background: rgba(255, 255, 255, 0.1);
             backdrop-filter: blur(10px);
-            margin-left: 20px; /* Ajoute une marge pour prendre en compte la sidebar */
+            margin-left: 20px;
             border-radius: 15px;
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
             color: var(--text-color);
             font-weight: 500;
             position: relative;
             z-index: 1;
-            transition: margin-left 0.3s ease, width 0.3s ease; /* Transition fluide */
+            transition: margin-left 0.3s ease, width 0.3s ease;
         }
 
         .sidebar.collapsed ~ .content {
-            margin-left: -170px; /* Marge réduite quand le menu est replié */
-            width: calc(100% - 60px); /* Le contenu occupe toute la largeur */
+            margin-left: -170px;
+            width: calc(100% - 60px);
         }
-
 
         .content h1 {
             font-size: 2.2rem;
             margin-bottom: 20px;
             font-weight: 700;
+            text-align: center;
         }
 
-        .content p {
-            font-size: 1.2rem;
+        .card-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
         }
 
-        .background-animations {
-            position: fixed;
-            top: 0;
-            left: 0;
+        .card {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .card img {
             width: 100%;
-            height: 100%;
-            pointer-events: none;
-            z-index: 0;
-            display: flex;
-            justify-content: space-between;
-            opacity: 0.15;
+            height: 200px;
+            object-fit: cover;
         }
 
-        .animation-left, .animation-right {
-            position: fixed;
-            top: 50%;
-            transform: translateY(-50%);
-            opacity: 1;
-            z-index: 0;
+        .card-body {
+            padding: 15px;
         }
 
-        .animation-left {
-            left: 100px;
+        .card-body h3 {
+            font-size: 1.5rem;
+            margin-bottom: 10px;
+            color: var(--primary-color);
         }
 
-        .animation-right {
-            right: 100px;
+        .card-body p {
+            font-size: 1rem;
+            margin-bottom: 5px;
         }
 
-        @media (max-width: 768px) {
-            .content {
-                margin: 10px;
-                padding: 20px;
-            }
+        .card-body .info {
+            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.7);
+        }
 
-            .background-animations {
-                opacity: 0.08;
-            }
-
-            .animation-left, .animation-right {
-                transform: scale(0.7) translateY(-50%);
-            }
+        .barre {
+            width: 70%;
+            border: solid 1px rgba(245, 245, 245, 0.842);
+            border-radius: 5px;
+            margin: 20px auto;
         }
     </style>
 </head>
 <body>
-    <div class="background-animations">
-        <div class="animation-left">
-            <dotlottie-player 
-                src="https://lottie.host/7e1c2974-9fe8-499e-9369-fd9154ffc156/YcuzylJ43k.lottie" 
-                background="transparent" 
-                speed="1" 
-                style="width: 400px; height: 400px" 
-                loop 
-                autoplay>
-            </dotlottie-player>
-        </div>
-        <div class="animation-right">
-            <dotlottie-player 
-                src="https://lottie.host/b90528ed-59c0-43b2-b808-6f5962fa241c/q4guCPXKee.lottie" 
-                background="transparent" 
-                speed="1" 
-                style="width: 400px; height: 400px" 
-                loop 
-                autoplay>
-            </dotlottie-player>
-        </div>
-    </div>
-
     <div class="sidebar" id="sidebar">
-        <h2>Dashboard</h2>
+        <h2>Équipements</h2>
         <ul>
             <li><a href="{{ url_for('dashboard') }}">Accueil</a></li>
             <li><a href="{{ url_for('reservation') }}">Réserver</a></li>
@@ -264,9 +243,22 @@
     </div>
 
     <div class="content">
-        <h1>Bienvenue dans le Dashboard, {{ user_name }}!</h1>
-        <p>Utilisez le menu pour réserver vos salles de musculation ou accéder à d'autres fonctionnalités.</p>
-    </div>    
+        <h1>Nos Équipements</h1>
+        <div class="barre"></div>
+        <div class="card-container">
+            {% for equipement in equipements %}
+            <div class="card">
+                <img src="{{ equipement[4] }}" alt="{{ equipement[1] }}">
+                <div class="card-body">
+                    <h3>{{ equipement[0] }}</h3>
+                    <p>{{ equipement[1] }}</p>
+                    <p class="info"><strong>Type :</strong> {{ equipement[2] }}</p>
+                    <p class="info"><strong>Disponibilité :</strong> {{ equipement[3] }}</p>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
 
     <script>
         const sidebar = document.getElementById('sidebar');
@@ -279,8 +271,6 @@
         function menu(x) {
             x.classList.toggle("change");
         }
-
-        
     </script>
 </body>
 </html>

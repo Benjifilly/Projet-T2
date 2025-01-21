@@ -377,6 +377,16 @@ def modify_reservation(reservation_id):
         flash('Erreur lors de la modification de la réservation.', 'error')
         print(f"Erreur SQLite: {e}")
         return redirect(url_for('my_reservations'))
+    
+@app.route('/equipements')
+def equipements():
+    connection = sqlite3.connect('D:\Projet-T2-main\Sallemuscu.db')
+    cursor = connection.cursor()
+    cursor.execute("SELECT Nom, Description, Type, Disponibilite, URL FROM Equipement")
+    equipements = cursor.fetchall()
+    connection.close()
+
+    return render_template('equipements.html', equipements=equipements)
 
 @app.route('/logout')
 def logout():
