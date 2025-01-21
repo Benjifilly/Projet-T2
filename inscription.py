@@ -9,7 +9,7 @@ import os
 app = Flask(__name__)
 app.secret_key = 'votre_clé_secrète_ici'
 
-DATABASE = 'D:\Projet-T2-main\Sallemuscu.db'
+DATABASE = 'Projet-T2-main\Sallemuscu.db'
 
 def get_db_connection():
     conn = sqlite3.connect(DATABASE)
