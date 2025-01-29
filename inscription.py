@@ -16,6 +16,7 @@ def get_db_connection():
     conn.row_factory = sqlite3.Row
     return conn
 
+
 def login_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
@@ -159,13 +160,12 @@ def reserve_slot():
     room = request.form.get('room')
     start_time = request.form.get('time')
     duration = int(request.form.get('duration'))
-    user_id = session['user_id']  # Identifiant de l'utilisateur connecté
+    user_id = session['user_id']
 
     if not room or not start_time or not duration:
         flash('Tous les champs sont requis.', 'error')
         return redirect(url_for('reservation'))
 
-    # Calcul de l'heure de fin
     start_time_dt = datetime.strptime(start_time, "%Y-%m-%dT%H:%M")
     end_time_dt = start_time_dt + timedelta(minutes=duration)
     end_time = end_time_dt.strftime("%Y-%m-%d %H:%M:%S")
@@ -174,24 +174,31 @@ def reserve_slot():
         with get_db_connection() as conn:
             cursor = conn.cursor()
 
-            # Vérifiez si le créneau est disponible
+            # Vérifier si un créneau existe déjà pour cette salle
             cursor.execute('''
-                SELECT * FROM Creneau
+                SELECT ID_creneau FROM Creneau
                 WHERE (Heure_debut < ? AND Heure_fin > ?) AND ID_salle = ?
             ''', (end_time, start_time, room))
             existing_creneau = cursor.fetchone()
 
             if existing_creneau:
-                # Ajouter en liste d'attente si le créneau est déjà pris
+                # Ajouter l'utilisateur à la liste d'attente
                 cursor.execute('''
-                    INSERT INTO Liste_attente (Date_demande, Position)
-                    VALUES (?, (SELECT COALESCE(MAX(Position), 0) + 1 FROM Liste_attente))
-                ''', (datetime.now().strftime("%Y-%m-%d %H:%M:%S"),))
+                    INSERT INTO Liste_attente (ID_utilisateur, ID_salle, Heure_demande, Position)
+                    VALUES (?, ?, ?, (SELECT COALESCE(MAX(Position), 0) + 1 FROM Liste_attente WHERE ID_salle = ?))
+                ''', (user_id, room, datetime.now().strftime("%Y-%m-%d %H:%M:%S"), room))
                 conn.commit()
-                flash('Le créneau est déjà réservé. Vous avez été ajouté à la liste d’attente.', 'error')
+                
+                # Récupérer la position de l'utilisateur dans la liste d'attente
+                cursor.execute('''
+                    SELECT Position FROM Liste_attente WHERE ID_utilisateur = ? AND ID_salle = ? ORDER BY Position DESC LIMIT 1
+                ''', (user_id, room))
+                position = cursor.fetchone()['Position']
+
+                flash(f'Créneau déjà pris. Vous êtes en liste d’attente à la position {position}.', 'info')
                 return redirect(url_for('reservation'))
 
-            # Sinon, ajouter une réservation
+            # Sinon, créer une réservation
             cursor.execute('''
                 INSERT INTO Creneau (Heure_debut, Heure_fin, ID_salle)
                 VALUES (?, ?, ?)
@@ -211,6 +218,7 @@ def reserve_slot():
         flash('Une erreur est survenue lors de la réservation.', 'error')
         print(f"Erreur SQLite: {e}")
         return redirect(url_for('reservation'))
+
     
 @app.route('/reservation')
 @login_required
