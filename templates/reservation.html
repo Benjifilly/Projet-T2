@@ -337,6 +337,7 @@
                 <option value="salle1">Salle 1</option>
                 <option value="salle2">Salle 2</option>
             </select>
+            
 
             <label for="time">Début :</label>
             <input type="datetime-local" id="time" name="time" required>
@@ -375,8 +376,9 @@
                 center: 'title',
                 end: 'timeGridWeek,timeGridDay'
             },
-            events: '/api/reservations' // URL de l'API pour récupérer les réservations
+            events: '/api/reservations'
         });
+
 
         calendar.render();
     });

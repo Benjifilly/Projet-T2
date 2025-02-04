@@ -154,6 +154,40 @@ def profile():
         print(f"Erreur SQLite: {e}")
         return redirect(url_for('dashboard'))
     
+class Queue:
+    def __init__(self):
+        self.items = []
+
+    def is_empty(self):
+        return len(self.items) == 0
+
+    def enqueue(self, item):
+        self.items.append(item)
+
+    def dequeue(self):
+        if not self.is_empty():
+            return self.items.pop(0)
+        raise IndexError("La file est vide")
+
+    def peek(self):
+        if not self.is_empty():
+            return self.items[0]
+        raise IndexError("La file est vide")
+
+    def size(self):
+        return len(self.items)
+
+    def __iter__(self):
+        return iter(self.items)
+
+waiting_queues = {}
+
+def get_queue_for_room(room_id):
+    if room_id not in waiting_queues:
+        waiting_queues[room_id] = Queue()
+    return waiting_queues[room_id]
+
+    
 @app.route('/reserve_slot', methods=['POST'])
 @login_required
 def reserve_slot():
@@ -166,9 +200,12 @@ def reserve_slot():
         flash('Tous les champs sont requis.', 'error')
         return redirect(url_for('reservation'))
 
+    # Conversion du format de date
     start_time_dt = datetime.strptime(start_time, "%Y-%m-%dT%H:%M")
     end_time_dt = start_time_dt + timedelta(minutes=duration)
-    end_time = end_time_dt.strftime("%Y-%m-%d %H:%M:%S")
+    formatted_start_time = start_time_dt.strftime("%Y-%m-%d %H:%M:%S")
+    formatted_end_time = end_time_dt.strftime("%Y-%m-%d %H:%M:%S")
+
 
     try:
         with get_db_connection() as conn:
@@ -178,31 +215,26 @@ def reserve_slot():
             cursor.execute('''
                 SELECT ID_creneau FROM Creneau
                 WHERE (Heure_debut < ? AND Heure_fin > ?) AND ID_salle = ?
-            ''', (end_time, start_time, room))
+            ''', (formatted_end_time, formatted_start_time, room))
             existing_creneau = cursor.fetchone()
-
+            
             if existing_creneau:
-                # Ajouter l'utilisateur à la liste d'attente
-                cursor.execute('''
-                    INSERT INTO Liste_attente (ID_utilisateur, ID_salle, Heure_demande, Position)
-                    VALUES (?, ?, ?, (SELECT COALESCE(MAX(Position), 0) + 1 FROM Liste_attente WHERE ID_salle = ?))
-                ''', (user_id, room, datetime.now().strftime("%Y-%m-%d %H:%M:%S"), room))
-                conn.commit()
-                
-                # Récupérer la position de l'utilisateur dans la liste d'attente
-                cursor.execute('''
-                    SELECT Position FROM Liste_attente WHERE ID_utilisateur = ? AND ID_salle = ? ORDER BY Position DESC LIMIT 1
-                ''', (user_id, room))
-                position = cursor.fetchone()['Position']
-
-                flash(f'Créneau déjà pris. Vous êtes en liste d’attente à la position {position}.', 'info')
+                # Gérer la file d'attente
+                queue = get_queue_for_room(room)
+                queue.enqueue({
+                    'user_id': user_id,
+                    'time_requested': datetime.now()
+                })
+                position = queue.size()
+                print(f"Utilisateur {user_id} ajouté en position {position} dans la file de la salle {room}")
+                flash(f'Créneau déjà pris. Vous êtes en liste d’attente à la position {position}.', 'error')
                 return redirect(url_for('reservation'))
 
-            # Sinon, créer une réservation
+            # Sinon, créer une réservation normalement
             cursor.execute('''
                 INSERT INTO Creneau (Heure_debut, Heure_fin, ID_salle)
                 VALUES (?, ?, ?)
-            ''', (start_time, end_time, room))
+            ''', (formatted_start_time, formatted_end_time, room))
             creneau_id = cursor.lastrowid
 
             cursor.execute('''
@@ -219,12 +251,13 @@ def reserve_slot():
         print(f"Erreur SQLite: {e}")
         return redirect(url_for('reservation'))
 
+
+
     
 @app.route('/reservation')
 @login_required
 def reservation():
     if request.args.get('format') == 'json':
-        # Retourne les données des réservations
         user_id = session['user_id']
         try:
             with get_db_connection() as conn:

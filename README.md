@@ -46,12 +46,10 @@ Le projet utilise les librairies Python suivantes :
 - `sqlite3` : Pour gérer la base de données locale.
 
 ```python
-from flask import Flask, request, render_template, redirect, url_for, flash, session, jsonify   
+from flask import Flask, request, render_template, redirect, url_for, flash, session
 import sqlite3
 from werkzeug.security import generate_password_hash, check_password_hash
 from functools import wraps
-from datetime import datetime, timedelta
-import os
 ```
 
 ## ⚠️ Base de Données
