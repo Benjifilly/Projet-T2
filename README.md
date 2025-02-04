@@ -1,12 +1,14 @@
-# 🏋️‍♂️ Projet de Terminale Générale - BDD Réservation de Salles de Musculation
+# 🏋s️ Projet de Terminale Générale - BDD Réservation de Salles de Musculation
 
-## 📖 Description
-Ce projet est réalisé dans le cadre de la terminale générale. Il s'agit d'une application web permettant de gérer la réservation de salles de musculation. Elle inclut des fonctionnalités comme l'inscription, la connexion, et la gestion des réservations.
+## 📚 Description
+Ce projet est réalisé dans le cadre de la terminale générale. Il s'agit d'une application web permettant de gérer la réservation de salles de musculation. Elle inclut des fonctionnalités comme l'inscription, la connexion, la gestion des réservations et une liste d'attente automatisée.
 
 ## 🛠️ Technologies Utilisées
-- Python (Flask)
-- SQLite pour la base de données
-- HTML/CSS/JavaScript pour l'interface utilisateur
+- **Backend :** Python (Flask)
+- **Base de données :** SQLite
+- **Frontend :** HTML, CSS, JavaScript
+- **Librairies frontend :** FullCalendar.js pour la gestion des réservations
+- **Authentification & Sécurité :** Werkzeug (hashing des mots de passe)
 
 ## 🚀 Installation en Local
 Pour exécuter ce projet localement, suivez les étapes ci-dessous :
@@ -21,44 +23,48 @@ git clone https://github.com/Benjifilly/Projet-T2
 cd Projet-T2
 ```
 
-3. **Installer les librairies requises :**
-Assurez-vous d'avoir Python installé sur votre machine, puis installez les dépendances avec `pip`.
+3. **Configurer un environnement virtuel (recommandé) :**
 ```bash
-pip install flask werkzeug
+python -m venv venv
+source venv/bin/activate  # Sur Windows : venv\Scripts\activate
 ```
 
-4. **Exécuter le script Python :**
-Pour démarrer l'application en local, exécutez le fichier Python principal :
+4. **Installer les dépendances requises :**
+Assurez-vous d'avoir Python installé sur votre machine, puis exécutez :
 ```bash
-python incription.py
+pip install -r requirements.txt
 ```
 
-5. **Ouvrir l'application dans le navigateur :**
-L'application sera accessible à l'adresse suivante dans votre navigateur :
+5. **Démarrer l'application Flask :**
+```bash
+python inscription.py
 ```
-http://localhost:5000
-```
+
+6. **Ouvrir l'application dans le navigateur :**
+L'application sera accessible à l'adresse suivante :
+[http://localhost:5000](http://localhost:5000)
 
 ## 📚 Librairies Principales Utilisées
-Le projet utilise les librairies Python suivantes :
-- `Flask` : Pour gérer l'application web.
-- `Werkzeug` : Pour la gestion des mots de passe et des sessions utilisateur.
-- `sqlite3` : Pour gérer la base de données locale.
-
-```python
-from flask import Flask, request, render_template, redirect, url_for, flash, session
-import sqlite3
-from werkzeug.security import generate_password_hash, check_password_hash
-from functools import wraps
-```
+Le projet repose sur les librairies suivantes :
+- **Flask** : Framework web principal
+- **Werkzeug** : Gestion des mots de passe et sécurité
+- **SQLite3** : Base de données locale
+- **FullCalendar.js** : Interface calendrier pour les réservations
+- **Flask-Session** : Gestion des sessions utilisateurs
 
 ## ⚠️ Base de Données
-**Important :** La base de données SQLite incluse dans le projet **n'est pas vide** et contient déjà des informations. Il est recommandé de vérifier ou réinitialiser la base de données avant de l'utiliser en production.
+**Important :** La base de données SQLite incluse contient déjà des informations de test. Il est recommandé de la réinitialiser avant une utilisation en production.
+
+Pour réinitialiser la base de données :
+```bash
+rm Sallemuscu.db  # Sur Windows : del Sallemuscu.db
+python init_db.py  # Réinitialisation de la base
+```
 
 ## 👤 Auteur
 - **Filly Benjamin**
 - Terminale Générale, Projet 2024/2025
 
 ---
-💡 **Merci d'avoir consulté ce projet !** Si vous avez des questions ou des suggestions, n'hésitez pas à ouvrir une issue sur GitHub.
+💡 **Merci d'avoir consulté ce projet !** Si vous avez des questions ou suggestions, ouvrez une issue sur GitHub.
 
